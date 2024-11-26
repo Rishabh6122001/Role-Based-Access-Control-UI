@@ -2,23 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableRow, Button, Dialog, TextField } from '@mui/material';
 
 const UserManagement = () => {
-  // Retrieve data from localStorage or initialize with an empty array
   const [users, setUsers] = useState(() => {
     const savedUsers = localStorage.getItem('users');
     return savedUsers ? JSON.parse(savedUsers) : [];
   });
   const [open, setOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState({ name: '', role: '' });
+  const [editingIndex, setEditingIndex] = useState(null);
 
-  // Update localStorage whenever the users state changes
   useEffect(() => {
     localStorage.setItem('users', JSON.stringify(users));
   }, [users]);
 
-  const handleAddUser = () => {
-    setUsers([...users, currentUser]);
+  const handleAddOrUpdateUser = () => {
+    if (editingIndex !== null) {
+      const updatedUsers = [...users];
+      updatedUsers[editingIndex] = currentUser;
+      setUsers(updatedUsers);
+      setEditingIndex(null);
+    } else {
+      setUsers([...users, currentUser]);
+    }
     setCurrentUser({ name: '', role: '' });
     setOpen(false);
+  };
+
+  const handleEditUser = (index) => {
+    setCurrentUser(users[index]);
+    setEditingIndex(index);
+    setOpen(true);
   };
 
   const handleDeleteUser = (index) => {
@@ -43,6 +55,9 @@ const UserManagement = () => {
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.role}</TableCell>
               <TableCell>
+                <Button variant="outlined" color="primary" onClick={() => handleEditUser(index)}>
+                  Edit
+                </Button>
                 <Button variant="outlined" color="error" onClick={() => handleDeleteUser(index)}>
                   Delete
                 </Button>
@@ -66,8 +81,8 @@ const UserManagement = () => {
             value={currentUser.role}
             onChange={(e) => setCurrentUser({ ...currentUser, role: e.target.value })}
           />
-          <Button onClick={handleAddUser} variant="contained" style={{ marginTop: 20 }}>
-            Add User
+          <Button onClick={handleAddOrUpdateUser} variant="contained" style={{ marginTop: 20 }}>
+            {editingIndex !== null ? 'Update User' : 'Add User'}
           </Button>
         </div>
       </Dialog>
@@ -76,3 +91,4 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
+
